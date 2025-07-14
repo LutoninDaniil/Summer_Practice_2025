@@ -1,48 +1,50 @@
-﻿using System;
+﻿﻿namespace FileSystemCommands;
+using System;
 using System.IO;
 using CommandLib;
+using System.Linq;
 
-namespace FileSystemCommands
+public class DirectorySizeCommand : ICommand
 {
-    public class DirectorySizeCommand : ICommand
+    public string DirectoryPath;
+    public DirectorySizeCommand(string directoryPath)
     {
-        private readonly string _path;
-
-        public DirectorySizeCommand(string path)
-        {
-            _path = path;
-        }
-
-        public void Execute()
-        {
-            long size = 0;
-            var files = Directory.GetFiles(_path, "*", SearchOption.AllDirectories);
-            foreach (var file in files)
-            {
-                size += new FileInfo(file).Length;
-            }
-            Console.WriteLine($"Directory size: {size} bytes");
-        }
+        DirectoryPath = directoryPath;
     }
-    public class FindFilesCommand : ICommand
+     public void Execute()
     {
-        private readonly string _path;
-        private readonly string _pattern;
-
-        public FindFilesCommand(string path, string pattern)
+        var files = Directory.GetFiles(DirectoryPath, "*", SearchOption.AllDirectories);
+        long size = 0;
+        foreach (var file in files)
         {
-            _path = path;
-            _pattern = pattern;
+            size += new FileInfo(file).Length;
+        }
+        Console.WriteLine($"Directory size: {size} bytes");
+    }
+}
+public class FindFilesCommand : ICommand
+{
+    public string DirectoryPath;
+    public string SearchPattern;
+    public FindFilesCommand(string directoryPath, string searchPattern)
+    {
+        DirectoryPath = directoryPath;
+        SearchPattern = searchPattern;
+    }
+    public void Execute()
+    {
+        if (!Directory.Exists(DirectoryPath))
+        {
+            throw new DirectoryNotFoundException();
         }
 
-        public void Execute()
+        var files = Directory.GetFiles(DirectoryPath, SearchPattern);
+        Console.WriteLine($"Found {files.Length} files:");
+
+        // Неоптимальный вывод через цикл
+        for (int i = 0; i < files.Length; i++)
         {
-            var files = Directory.GetFiles(_path, _pattern);
-            Console.WriteLine($"Found files:");
-            foreach (var file in files)
-            {
-                Console.WriteLine(Path.GetFileName(file));
-            }
+            Console.WriteLine(files[i]);
         }
     }
 }

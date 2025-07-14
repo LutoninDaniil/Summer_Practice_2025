@@ -1,7 +1,25 @@
-﻿namespace CommandLib
+﻿namespace CommandLib;
+using System;
+using System.Reflection;
+public interface ICommand
 {
-    public interface ICommand
+    void Execute();
+}
+public class DisplayNameAttribute : Attribute
+{
+    public string DisplayName { get; }
+    public DisplayNameAttribute(string displayName)
     {
-        void Execute();
+        DisplayName = displayName;
+    }
+}
+public class VersionAttribute : Attribute
+{
+    public int Major { get; }
+    public int Minor { get; }
+    public VersionAttribute(int major, int minor)
+    {
+        Major = major;
+        Minor = minor;
     }
 }
