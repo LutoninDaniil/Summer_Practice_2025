@@ -1,63 +1,70 @@
 ﻿namespace task14;
 using System;
-using System.Threading;
 using System.Collections.Generic;
+using System.Threading;
 
-public class DefiniteIntegral
+public static class DefiniteIntegral
 {
-    public static object locker = new object();
-    public static double totalSum = 0;
+    private static readonly object locker = new object();
+    private static double totalResult = 0;
 
-    public static double Solve(double a, double b, Func<double, double> function, double step, int threadsNumber)
+    public static double Solve(double a, double b, Func<double, double> f, double step, int threadsNumber)
     {
-        if (threadsNumber <= 0) throw new ArgumentException("Threads number must be > 0");
-        if (a >= b) throw new ArgumentException("Invalid interval: a must be less than b");
-
-        totalSum = 0;
-        double segment = (b - a) / threadsNumber;
-        List<Thread> threads = new List<Thread>();
-
+        if (threadsNumber <= 0) 
+        {
+            throw new ArgumentException("threads must be > 0");
+        }
+        if (a >= b) 
+        {
+            throw new ArgumentException("a must be less than b");
+        }
+        
+        totalResult = 0;
+        List<Thread> threadsList = new List<Thread>();
+        double segmentLength = (b - a) / threadsNumber;
+        
         for (int i = 0; i < threadsNumber; i++)
         {
-            double start = a + i * segment;
-            double end = (i == threadsNumber - 1) ? b : start + segment;
-
-            Thread thread = new Thread(() =>
+            double start = a + i * segmentLength;
+            double end = (i == threadsNumber - 1) ? b : start + segmentLength;
+            
+            Thread thread = new Thread(() => 
             {
-                double part = CalculateIntegral(start, end, function, step);
-                lock (locker)
+                double part = CalculateIntegral(f, start, end, step);
+                lock (locker) 
                 {
-                    totalSum += part;
+                    totalResult += part;
                 }
             });
-
-            threads.Add(thread);
+            
+            threadsList.Add(thread);
             thread.Start();
         }
-
-        foreach (Thread t in threads)
+        
+        foreach (Thread t in threadsList)
         {
             t.Join();
         }
-
-        return totalSum;
+        
+        return totalResult;
     }
 
-    public static double CalculateIntegral(double a, double b, Func<double, double> function, double step)
+    public static double CalculateIntegral(Func<double, double> f, double a, double b, double step)
     {
         double sum = 0;
         double current = a;
-
-        while (current < b)
+        int stepsCount = (int)Math.Ceiling((b - a) / step);
+        
+        for (int i = 0; i < stepsCount; i++)
         {
             double next = current + step;
             if (next > b) next = b;
-
-            double area = (function(current) + function(next)) * (next - current) / 2;
+            
+            double area = (f(current) + f(next)) * (next - current) / 2;
             sum += area;
             current = next;
         }
-
+        
         return sum;
     }
 }
