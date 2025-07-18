@@ -14,14 +14,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      - name: Install libgdiplus
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libgdiplus
-          sudo ln -s /usr/lib/libgdiplus.so /usr/lib/gdiplus.dll
-
-      - name: Build
-        run: dotnet build
 
       - name: TestRun
         run: dotnet test practice2025.sln
